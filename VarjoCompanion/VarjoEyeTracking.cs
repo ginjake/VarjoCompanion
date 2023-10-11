@@ -1,17 +1,20 @@
 ﻿using System;
-
 using System.Runtime.InteropServices;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace VarjoCompanion
 {
     public class VarjoEyeTracking
     {
         [StructLayout(LayoutKind.Sequential)]
+        public struct VarjoData
+        {
+            public GazeData gazeData;
+            public EyeMeasurements eyeData;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
         public struct Vector
         {
-
             public double x;
             public double y;
             public double z;
@@ -61,9 +64,24 @@ namespace VarjoCompanion
             public double rightPupilSize;           //!< Normalized [0..1] right eye pupil size.
         }
 
+        [StructLayout(LayoutKind.Sequential)]
+        public struct EyeMeasurements
+        {
+            public long frameNumber;                    //!< Frame number, increases monotonically.  
+            public long captureTime;                    //!< Varjo time when this data was captured, see varjo_GetCurrentTime()
+            public float interPupillaryDistanceInMM;    //!< Estimated IPD in millimeters
+            public float leftPupilIrisDiameterRatio;    //!< Ratio between left pupil and left iris.
+            public float rightPupilIrisDiameterRatio;   //!< Ratio between right pupil and right iris.
+            public float leftPupilDiameterInMM;         //!< Left pupil diameter in mm
+            public float rightPupilDiameterInMM;        //!< Right pupil diameter in mm
+            public float leftIrisDiameterInMM;          //!< Left iris diameter in mm
+            public float rightIrisDiameterInMM;         //!< Right iris diameter in mm
+            public float leftEyeOpenness;               //!< Estimate of the ratio of openness of the left eye where 1 corresponds to a fully open eye and 0 corresponds to a fully closed eye. 
+            public float rightEyeOpenness;              //!< Estimate of the ratio of openness of the right eye where 1 corresponds to a fully open eye and 0 corresponds to a fully closed eye. 
+        }
 
         [StructLayout(LayoutKind.Sequential)]
-        private struct GazeCalibrationParameter
+        public struct GazeCalibrationParameter
         {
             [MarshalAs(UnmanagedType.LPStr)] public string key;
             [MarshalAs(UnmanagedType.LPStr)] public string value;
@@ -108,6 +126,7 @@ namespace VarjoCompanion
         {
             return session;
         }
+
         public static IntPtr Init()
         {
             session = varjo_SessionInit();
@@ -155,9 +174,9 @@ namespace VarjoCompanion
         {
             return (GazeEyeCalibrationQuality)varjo_GetPropertyInt(session, 0xA005);
         }
-        public static GazeData GetGaze()
+        public static VarjoData GetGazeData()
         {
-            return varjo_GetGaze(session);
+            return varjo_GetGazeData(session);
         }
 
 
@@ -186,7 +205,7 @@ namespace VarjoCompanion
         public static extern bool varjo_IsGazeCalibrated(IntPtr session);
 
         [DllImport("VarjoLib", CharSet = CharSet.Auto)]
-        public static extern GazeData varjo_GetGaze(IntPtr session);
+        public static extern VarjoData varjo_GetGazeData(IntPtr session);
 
         [DllImport("VarjoLib", CharSet = CharSet.Auto)]
         public static extern void varjo_RequestGazeCalibration(IntPtr session);
