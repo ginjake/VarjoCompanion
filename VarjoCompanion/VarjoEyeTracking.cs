@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using static VarjoCompanion.VarjoEyeTracking;
 
 namespace VarjoCompanion
 {
@@ -122,6 +123,9 @@ namespace VarjoCompanion
         }
 
         static IntPtr session;
+        static IntPtr gaze;
+        static IntPtr eye;
+
         public static IntPtr GetVarjoSession()
         {
             return session;
@@ -176,9 +180,14 @@ namespace VarjoCompanion
         }
         public static VarjoData GetGazeData()
         {
-            return varjo_GetGazeData(session);
+            GazeData gazeData;
+            EyeMeasurements eyeData;
+            varjo_GetGazeData(session, out gazeData, out eyeData);
+            VarjoData varjoData = new VarjoData();
+            varjoData.gazeData = gazeData;
+            varjoData.eyeData = eyeData;
+            return varjoData; 
         }
-
 
         [DllImport("VarjoLib", CharSet = CharSet.Auto)]
         public static extern bool varjo_IsAvailable();
@@ -205,8 +214,8 @@ namespace VarjoCompanion
         public static extern bool varjo_IsGazeCalibrated(IntPtr session);
 
         [DllImport("VarjoLib", CharSet = CharSet.Auto)]
-        public static extern VarjoData varjo_GetGazeData(IntPtr session);
-
+        public static extern bool varjo_GetGazeData(IntPtr session, out GazeData gaze, out EyeMeasurements eyeMeasurements);
+        
         [DllImport("VarjoLib", CharSet = CharSet.Auto)]
         public static extern void varjo_RequestGazeCalibration(IntPtr session);
 

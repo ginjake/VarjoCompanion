@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO.MemoryMappedFiles;
 using System.Runtime.InteropServices;
+using static VarjoCompanion.VarjoEyeTracking;
 
 namespace VarjoCompanion;
 
@@ -9,7 +10,7 @@ public class MainApp
     static void Main(string[] args)
     {
         IntPtr session = VarjoEyeTracking.Init();
-        
+
         if (!VarjoEyeTracking.IsGazeAllowed())
         {
             Console.WriteLine("Gaze tracking is not allowed! Please enable it in the Varjo Base!");
@@ -20,7 +21,6 @@ public class MainApp
         VarjoEyeTracking.SyncProperties();
 
         VarjoEyeTracking.VarjoData varjoData = new VarjoEyeTracking.VarjoData();
-
         using (var memMapFile = MemoryMappedFile.CreateNew("VarjoEyeTracking", Marshal.SizeOf(varjoData)))
         {
             using (var accessor = memMapFile.CreateViewAccessor())
@@ -29,8 +29,10 @@ public class MainApp
                 while (!(Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter))
                 {
                     varjoData = VarjoEyeTracking.GetGazeData();
+
                     accessor.Write(0, ref varjoData);
                 }
+
             }
         }
 
